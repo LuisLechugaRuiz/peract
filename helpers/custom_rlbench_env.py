@@ -87,6 +87,7 @@ class CustomRLBenchEnv(RLBenchEnv):
         # obs.gripper_pose = grip_pose
         obs.joint_positions = joint_pos
         obs.gripper_pose = grip_pose
+        obs_dict["joint_positions"] = joint_pos
         # obs_dict['gripper_pose'] = grip_pose
         return obs_dict
 
