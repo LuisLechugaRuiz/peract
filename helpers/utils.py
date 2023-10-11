@@ -322,7 +322,6 @@ def split_list(lst, n):
 def extract_obs(obs: Observation,
                 cameras,
                 t: int = 0,
-                prev_action=None,
                 channels_last: bool = False,
                 episode_length: int = 10):
     obs.joint_velocities = None
