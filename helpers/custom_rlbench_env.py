@@ -158,7 +158,6 @@ class CustomRLBenchEnv(RLBenchEnv):
             self._last_exception = e
 
         summaries = []
-        self._i += 1
         if ((terminal or self._i == self._episode_length) and
                 self._record_current_episode):
             self._append_final_frame(success)
@@ -260,9 +259,11 @@ class CustomMultiTaskRLBenchEnv(MultiTaskRLBenchEnv):
 
         obs_dict = super(CustomMultiTaskRLBenchEnv, self).extract_obs(obs)
 
+        # !! IS VERY IMPORTANT THAT THIS VALUE MATCHES TRAINING DATA !!
+        episode_length = 25
         if self._time_in_state:
             time = (1. - ((self._i if t is None else t) / float(
-                self._episode_length - 1))) * 2. - 1.
+                episode_length - 1))) * 2. - 1.
             obs_dict['low_dim_state'] = np.concatenate(
                 [obs_dict['low_dim_state'], [time]]).astype(np.float32)
 
@@ -270,7 +271,8 @@ class CustomMultiTaskRLBenchEnv(MultiTaskRLBenchEnv):
         # obs.gripper_pose = grip_pose
         obs.joint_positions = joint_pos
         obs.gripper_pose = grip_pose
-        # obs_dict['gripper_pose'] = grip_pose
+        obs_dict['gripper_pose'] = grip_pose.astype(np.float32)
+        obs_dict["joint_positions"] = joint_pos.astype(np.float32)
         return obs_dict
 
     def launch(self):
@@ -325,6 +327,8 @@ class CustomMultiTaskRLBenchEnv(MultiTaskRLBenchEnv):
             else:
                 reward = 0.0
             obs = self.extract_obs(obs)
+            if self.validate_action(action, obs):
+                self._i += 1
             self._previous_obs_dict = obs
         except (IKError, ConfigurationPathError, InvalidActionError) as e:
             terminal = True
@@ -340,7 +344,6 @@ class CustomMultiTaskRLBenchEnv(MultiTaskRLBenchEnv):
             self._last_exception = e
 
         summaries = []
-        self._i += 1
         if ((terminal or self._i == self._episode_length) and
                 self._record_current_episode):
             self._append_final_frame(success)
@@ -390,3 +393,6 @@ class CustomMultiTaskRLBenchEnv(MultiTaskRLBenchEnv):
         self._recorded_images.clear()
 
         return self._previous_obs_dict
+
+    def validate_action(self, action, observation):
+        return True
